@@ -40,6 +40,13 @@ loadApiKeys();
 const app = express();
 const port = process.env.PORT || 3000;
 
+// Debug configuration
+console.log('=== Azure OpenAI Configuration ===');
+console.log('AZURE_API_KEY:', process.env.AZURE_API_KEY ? `${process.env.AZURE_API_KEY.substring(0, 10)}...` : 'NOT SET');
+console.log('AZURE_BASE_URL:', process.env.AZURE_BASE_URL || 'NOT SET');
+console.log('AZURE_DEPLOYMENT_NAME:', process.env.AZURE_DEPLOYMENT_NAME || 'NOT SET');
+console.log('===================================');
+
 // Initialize Azure OpenAI provider
 const azure = createAzure({
   baseURL: process.env.AZURE_BASE_URL,
@@ -65,16 +72,30 @@ app.use('/api', (req, res, next) => {
 app.post('/api/generate', async (req, res) => {
   try {
     const { prompt } = req.body;
+    console.log(`Generating text for prompt: "${prompt}"`);
+    console.log(`Using deployment: ${process.env.AZURE_DEPLOYMENT_NAME}`);
+    console.log(`Base URL: ${process.env.AZURE_BASE_URL}`);
+    
     const { text } = await generateText({ model, prompt });
+    console.log('Text generated successfully');
     res.json({ text });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error generating text:');
+    console.error('Error message:', error.message);
+    console.error('Error stack:', error.stack);
+    console.error('Error details:', JSON.stringify(error, null, 2));
+    res.status(500).json({ 
+      error: error.message,
+      details: error.cause || 'No additional details'
+    });
   }
 });
 
 app.post('/api/stream', async (req, res) => {
   try {
     const { prompt } = req.body;
+    console.log(`Streaming text for prompt: "${prompt}"`);
+    
     const result = await streamText({ model, prompt });
     
     res.setHeader('Content-Type', 'text/plain');
@@ -85,7 +106,12 @@ app.post('/api/stream', async (req, res) => {
     }
     res.end();
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error streaming text:', error.message);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      error: error.message,
+      details: error.cause || 'No additional details'
+    });
   }
 });
 
