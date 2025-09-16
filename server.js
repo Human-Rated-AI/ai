@@ -47,12 +47,18 @@ console.log('AZURE_BASE_URL:', process.env.AZURE_BASE_URL || 'NOT SET');
 console.log('AZURE_DEPLOYMENT_NAME:', process.env.AZURE_DEPLOYMENT_NAME || 'NOT SET');
 console.log('===================================');
 
+// Construct the correct deployment-based URL
+const baseUrl = process.env.AZURE_BASE_URL;
+const deploymentName = process.env.AZURE_DEPLOYMENT_NAME;
+const deploymentUrl = `${baseUrl}/deployments/${deploymentName}`;
+
+console.log('Constructed deployment URL:', deploymentUrl);
+
 // Initialize Azure OpenAI provider
 const azure = createAzure({
-  baseURL: process.env.AZURE_BASE_URL,
-  useDeploymentBasedUrls: true,
+  baseURL: deploymentUrl,
 });
-const model = azure(process.env.AZURE_DEPLOYMENT_NAME);
+const model = azure(deploymentName);
 
 app.use(cors());
 app.use(express.json());
