@@ -50,6 +50,7 @@ console.log('===================================');
 // Initialize Azure OpenAI provider
 const azure = createAzure({
   baseURL: process.env.AZURE_BASE_URL,
+  useDeploymentBasedUrls: true,
 });
 const model = azure(process.env.AZURE_DEPLOYMENT_NAME);
 
