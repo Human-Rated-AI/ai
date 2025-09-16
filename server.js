@@ -58,7 +58,8 @@ console.log('Constructed deployment URL:', deploymentUrl);
 const azure = createAzure({
   baseURL: deploymentUrl,
 });
-const model = azure(deploymentName);
+// Use empty string as model ID since deployment is already in the URL
+const model = azure('');
 
 app.use(cors());
 app.use(express.json());
