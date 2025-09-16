@@ -1,0 +1,12 @@
+version: '3.8'
+
+services:
+  ai-sdk:
+    build: .
+    ports:
+      - "${EXTERNAL_PORT}:${PORT}"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+    restart: unless-stopped
