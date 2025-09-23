@@ -40,6 +40,8 @@ fi
 
 case "$1" in
     "ai")
+        echo "Stopping existing AI API server..."
+        docker compose down --remove-orphans 2>/dev/null || true
         echo "Deploying AI API server..."
         docker compose up -d
         if [[ $? -eq 0 ]]; then
@@ -51,6 +53,8 @@ case "$1" in
         fi
         ;;
     "langfuse")
+        echo "Stopping existing Langfuse..."
+        docker compose -f langfuse-docker-compose.yml down --remove-orphans 2>/dev/null || true
         echo "Deploying Langfuse..."
         docker compose -f langfuse-docker-compose.yml up -d
         if [[ $? -eq 0 ]]; then
@@ -62,6 +66,9 @@ case "$1" in
         fi
         ;;
     "all")
+        echo "Stopping existing services..."
+        docker compose -f langfuse-docker-compose.yml down --remove-orphans 2>/dev/null || true
+        docker compose down --remove-orphans 2>/dev/null || true
         echo "Deploying Langfuse..."
         docker compose -f langfuse-docker-compose.yml up -d
         if [[ $? -ne 0 ]]; then
