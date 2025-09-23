@@ -52,7 +52,7 @@ case "$1" in
         ;;
     "langfuse")
         echo "Deploying Langfuse..."
-        docker-compose -f langfuse-docker-compose.yml up -d
+        docker compose -f langfuse-docker-compose.yml up -d
         if [[ $? -eq 0 ]]; then
             echo "Langfuse deployed successfully!"
             echo "Available at: http://localhost:$(grep LANGFUSE_PORT .env | cut -d= -f2)"
@@ -63,7 +63,7 @@ case "$1" in
         ;;
     "all")
         echo "Deploying Langfuse..."
-        docker-compose -f langfuse-docker-compose.yml up -d
+        docker compose -f langfuse-docker-compose.yml up -d
         if [[ $? -ne 0 ]]; then
             echo "Langfuse deployment failed!"
             exit 1
