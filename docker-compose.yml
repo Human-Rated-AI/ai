@@ -7,4 +7,6 @@ services:
       - NODE_ENV=production
     env_file:
       - .env
+    volumes:
+      - ./.env.d:/app/.env.d
     restart: unless-stopped

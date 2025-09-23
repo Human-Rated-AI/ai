@@ -5,7 +5,7 @@ show_help() {
     echo "Test the AI SDK API server"
     echo ""
     echo "Arguments:"
-    echo "  host:port     Server address (e.g., localhost:8000)"
+    echo "  host:port     Server address (e.g., ai-api.hurated.com)"
     echo "  prompt        Text prompt to send to the API"
     echo "  api_key       Optional API key for authentication"
     echo ""
@@ -13,8 +13,8 @@ show_help() {
     echo "  -h, --help    Show this help message"
     echo ""
     echo "Example:"
-    echo "  $0 localhost:8000 'Hi'"
-    echo "  $0 localhost:8000 'Hi' a1b2c3d4e5f6789012345678901234ab"
+    echo "  $0 ai-api.hurated.com 'Hi'"
+    echo "  $0 ai-api.hurated.com 'Hi' a1b2c3d4e5f6789012345678901234ab"
 }
 
 if [[ "$1" == "-h" || "$1" == "--help" || $# -lt 2 ]]; then
@@ -40,13 +40,13 @@ fi
 echo ""
 
 if [[ -n "$API_KEY" ]]; then
-    curl -X POST "http://$HOST_PORT/api/generate" \
+    curl -L -X POST "https://$HOST_PORT/api/generate" \
          -H "Content-Type: application/json" \
          -H "x-api-key: $API_KEY" \
          -d "{\"prompt\": \"$PROMPT\"}" \
          -w "\n\nStatus: %{http_code}\n"
 else
-    curl -X POST "http://$HOST_PORT/api/generate" \
+    curl -L -X POST "https://$HOST_PORT/api/generate" \
          -H "Content-Type: application/json" \
          -d "{\"prompt\": \"$PROMPT\"}" \
          -w "\n\nStatus: %{http_code}\n"
