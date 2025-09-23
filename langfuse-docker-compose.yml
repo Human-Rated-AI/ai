@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  langfuse-db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=langfuse
+    volumes:
+      - langfuse_db:/var/lib/postgresql/data
+
+  langfuse-server:
+    image: langfuse/langfuse:2
+    depends_on:
+      - langfuse-db
+    ports:
+      - "${LANGFUSE_PORT:-4000}:3000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@langfuse-db:5432/langfuse
+      - NEXTAUTH_SECRET=mysecret
+      - NEXTAUTH_URL=http://localhost:${LANGFUSE_PORT:-4000}
+      - TELEMETRY_ENABLED=false
+
+volumes:
+  langfuse_db:
