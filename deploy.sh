@@ -40,10 +40,8 @@ fi
 
 case "$1" in
     "ai")
-        echo "Stopping existing AI API server..."
-        docker compose down 2>/dev/null || true
         echo "Deploying AI API server..."
-        docker compose up -d
+        docker compose up -d ai-sdk
         if [[ $? -eq 0 ]]; then
             echo "AI API server deployed successfully!"
             echo "Available at: http://localhost:$(grep EXTERNAL_PORT .env | cut -d= -f2)"
@@ -53,10 +51,8 @@ case "$1" in
         fi
         ;;
     "langfuse")
-        echo "Stopping existing Langfuse..."
-        docker compose -f langfuse-docker-compose.yml down 2>/dev/null || true
         echo "Deploying Langfuse..."
-        docker compose -f langfuse-docker-compose.yml up -d
+        docker compose up -d langfuse-db langfuse-server
         if [[ $? -eq 0 ]]; then
             echo "Langfuse deployed successfully!"
             echo "Available at: http://localhost:$(grep LANGFUSE_PORT .env | cut -d= -f2)"
@@ -66,24 +62,14 @@ case "$1" in
         fi
         ;;
     "all")
-        echo "Stopping existing services..."
-        docker compose -f langfuse-docker-compose.yml down --remove-orphans 2>/dev/null || true
-        docker compose down --remove-orphans 2>/dev/null || true
-        echo "Deploying Langfuse..."
-        docker compose -f langfuse-docker-compose.yml up -d --remove-orphans
-        if [[ $? -ne 0 ]]; then
-            echo "Langfuse deployment failed!"
-            exit 1
-        fi
-        
-        echo "Deploying AI API server..."
+        echo "Deploying all services..."
         docker compose up -d
         if [[ $? -eq 0 ]]; then
             echo "All services deployed successfully!"
             echo "Langfuse: http://localhost:$(grep LANGFUSE_PORT .env | cut -d= -f2)"
             echo "AI API: http://localhost:$(grep EXTERNAL_PORT .env | cut -d= -f2)"
         else
-            echo "AI API deployment failed!"
+            echo "Deployment failed!"
             exit 1
         fi
         ;;

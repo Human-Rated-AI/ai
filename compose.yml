@@ -1,4 +1,16 @@
 services:
+  ai-sdk:
+    build: .
+    ports:
+      - "${EXTERNAL_PORT}:${PORT}"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+    volumes:
+      - ./.env.d:/app/.env.d
+    restart: unless-stopped
+
   langfuse-db:
     image: postgres
     restart: always
