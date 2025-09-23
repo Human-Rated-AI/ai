@@ -21,6 +21,7 @@ services:
       - NEXTAUTH_SECRET=mysecret
       - NEXTAUTH_URL=http://localhost:${LANGFUSE_PORT:-4000}
       - TELEMETRY_ENABLED=false
+      - SALT=${LANGFUSE_SALT}
 
 volumes:
   langfuse_db:
