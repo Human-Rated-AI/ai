@@ -1,4 +1,4 @@
-const { Langfuse } = require('langfuse');
+import { Langfuse } from 'langfuse';
 
 const langfuse = new Langfuse({
   secretKey: process.env.LANGFUSE_SECRET_KEY,
@@ -6,7 +6,7 @@ const langfuse = new Langfuse({
   baseUrl: process.env.LANGFUSE_BASE_URL || 'https://cloud.langfuse.com'
 });
 
-function trackUsage(apiKey, prompt, response, tokens = null) {
+export function trackUsage(apiKey, prompt, response, tokens = null) {
   const trace = langfuse.trace({
     name: 'ai-api-request',
     userId: apiKey.substring(0, 8), // First 8 chars as user ID
@@ -25,5 +25,3 @@ function trackUsage(apiKey, prompt, response, tokens = null) {
     } : undefined
   });
 }
-
-module.exports = { trackUsage };
