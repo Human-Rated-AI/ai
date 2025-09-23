@@ -41,7 +41,7 @@ fi
 case "$1" in
     "ai")
         echo "Deploying AI API server..."
-        docker compose up -d ai-sdk
+        docker compose up -d --build ai-sdk
         if [[ $? -eq 0 ]]; then
             echo "AI API server deployed successfully!"
             echo "Available at: http://localhost:$(grep EXTERNAL_PORT .env | cut -d= -f2)"
@@ -63,7 +63,7 @@ case "$1" in
         ;;
     "all")
         echo "Deploying all services..."
-        docker compose up -d
+        docker compose up -d --build
         if [[ $? -eq 0 ]]; then
             echo "All services deployed successfully!"
             echo "Langfuse: http://localhost:$(grep LANGFUSE_PORT .env | cut -d= -f2)"
