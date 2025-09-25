@@ -27,12 +27,11 @@ services:
       - langfuse-db
     ports:
       - "${LANGFUSE_PORT:-4000}:3000"
+    env_file:
+      - .env
     environment:
       - DATABASE_URL=postgresql://postgres:postgres@langfuse-db:5432/langfuse
-      - NEXTAUTH_SECRET=mysecret
-      - NEXTAUTH_URL=http://localhost:${LANGFUSE_PORT:-4000}
       - TELEMETRY_ENABLED=false
-      - SALT=${LANGFUSE_SALT}
 
 volumes:
   langfuse_db:
