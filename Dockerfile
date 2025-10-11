@@ -6,7 +6,7 @@ WORKDIR /app
 RUN npm install -g pnpm@10.11.0
 
 # Copy server files
-COPY server.js server-package.json ./
+COPY server.js server-package.json langfuse-tracker.js ./
 COPY .env* ./
 COPY .env.d/ ./.env.d/
 

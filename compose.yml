@@ -1,0 +1,37 @@
+services:
+  ai-sdk:
+    build: .
+    ports:
+      - "${EXTERNAL_PORT}:${PORT}"
+    environment:
+      - NODE_ENV=production
+    env_file:
+      - .env
+    volumes:
+      - ./.env.d:/app/.env.d
+    restart: unless-stopped
+
+  langfuse-db:
+    image: postgres
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=langfuse
+    volumes:
+      - langfuse_db:/var/lib/postgresql/data
+
+  langfuse-server:
+    image: langfuse/langfuse:2
+    depends_on:
+      - langfuse-db
+    ports:
+      - "${LANGFUSE_PORT:-4000}:3000"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@langfuse-db:5432/langfuse
+      - TELEMETRY_ENABLED=false
+
+volumes:
+  langfuse_db:

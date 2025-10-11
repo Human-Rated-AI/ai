@@ -5,6 +5,7 @@ import cors from 'cors';
 import { config } from 'dotenv';
 import { readdirSync, readFileSync, existsSync } from 'fs';
 import { join } from 'path';
+import { trackUsage } from './langfuse-tracker.js';
 
 // Load main .env file
 config();
@@ -80,12 +81,19 @@ app.use('/api', (req, res, next) => {
 app.post('/api/generate', async (req, res) => {
   try {
     const { prompt } = req.body;
+    const apiKey = req.headers['x-api-key'];
     console.log(`Generating text for prompt: "${prompt}"`);
     console.log(`Using deployment: ${process.env.AZURE_DEPLOYMENT_NAME}`);
     console.log(`Base URL: ${process.env.AZURE_BASE_URL}`);
     
     const { text } = await generateText({ model, prompt });
     console.log('Text generated successfully');
+    
+    // Track usage in Langfuse
+    if (apiKey) {
+      trackUsage(apiKey, prompt, text);
+    }
+    
     res.json({ text });
   } catch (error) {
     console.error('Error generating text:');
@@ -102,6 +110,7 @@ app.post('/api/generate', async (req, res) => {
 app.post('/api/stream', async (req, res) => {
   try {
     const { prompt } = req.body;
+    const apiKey = req.headers['x-api-key'];
     console.log(`Streaming text for prompt: "${prompt}"`);
     
     const result = await streamText({ model, prompt });
@@ -109,10 +118,17 @@ app.post('/api/stream', async (req, res) => {
     res.setHeader('Content-Type', 'text/plain');
     res.setHeader('Transfer-Encoding', 'chunked');
     
+    let fullResponse = '';
     for await (const delta of result.textStream) {
+      fullResponse += delta;
       res.write(delta);
     }
     res.end();
+    
+    // Track usage in Langfuse
+    if (apiKey) {
+      trackUsage(apiKey, prompt, fullResponse);
+    }
   } catch (error) {
     console.error('Error streaming text:', error.message);
     console.error('Error stack:', error.stack);

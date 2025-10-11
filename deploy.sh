@@ -1,17 +1,21 @@
 #!/usr/bin/env bash
 
 show_help() {
-    echo "Usage: $0 [OPTIONS]"
-    echo "Deploy the AI SDK API server using Docker Compose"
+    echo "Usage: $0 <service>"
+    echo "Deploy services using Docker Compose"
     echo ""
-    echo "Options:"
-    echo "  -h, --help    Show this help message"
+    echo "Services:"
+    echo "  ai        Deploy AI API server only"
+    echo "  langfuse  Deploy Langfuse only"
+    echo "  all       Deploy both AI API server and Langfuse"
     echo ""
-    echo "Example:"
-    echo "  $0"
+    echo "Examples:"
+    echo "  $0 ai"
+    echo "  $0 langfuse"
+    echo "  $0 all"
 }
 
-if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+if [[ $# -eq 0 || "$1" == "-h" || "$1" == "--help" ]]; then
     show_help
     exit 0
 fi
@@ -34,13 +38,45 @@ if [[ ! -f .env ]]; then
     exit 1
 fi
 
-echo "Deploying AI SDK API server..."
-docker compose up -d
-
-if [[ $? -eq 0 ]]; then
-    echo "Deployment successful!"
-    echo "API server is running at http://localhost:$(grep EXTERNAL_PORT .env | cut -d= -f2)"
-else
-    echo "Deployment failed!"
-    exit 1
-fi
+case "$1" in
+    "ai")
+        echo "Deploying AI API server..."
+        docker compose up -d --build ai-sdk
+        if [[ $? -eq 0 ]]; then
+            echo "AI API server deployed successfully!"
+            echo "Available at: http://localhost:$(grep EXTERNAL_PORT .env | cut -d= -f2)"
+        else
+            echo "AI API deployment failed!"
+            exit 1
+        fi
+        ;;
+    "langfuse")
+        echo "Deploying Langfuse..."
+        docker compose up -d langfuse-db langfuse-server
+        if [[ $? -eq 0 ]]; then
+            echo "Langfuse deployed successfully!"
+            echo "Available at: http://localhost:$(grep LANGFUSE_PORT .env | cut -d= -f2)"
+        else
+            echo "Langfuse deployment failed!"
+            exit 1
+        fi
+        ;;
+    "all")
+        echo "Deploying all services..."
+        docker compose up -d --build
+        if [[ $? -eq 0 ]]; then
+            echo "All services deployed successfully!"
+            echo "Langfuse: http://localhost:$(grep LANGFUSE_PORT .env | cut -d= -f2)"
+            echo "AI API: http://localhost:$(grep EXTERNAL_PORT .env | cut -d= -f2)"
+        else
+            echo "Deployment failed!"
+            exit 1
+        fi
+        ;;
+    *)
+        echo "Error: Unknown service '$1'"
+        echo ""
+        show_help
+        exit 1
+        ;;
+esac
