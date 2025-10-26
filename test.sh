@@ -110,14 +110,15 @@ done
 # Handle optional host:port - if only one positional arg, it's the prompt
 if [[ -n "$HOST_PORT" && -z "$PROMPT" ]]; then
     # Only one arg given, check if it looks like a host or prompt
-    if [[ "$HOST_PORT" =~ ^[a-zA-Z0-9.-]+(:[0-9]+)?$ ]] || [[ "$HOST_PORT" =~ ^https?:// ]]; then
+    # Host must contain a dot, colon, or start with http/https
+    if [[ "$HOST_PORT" =~ ^https?:// ]] || [[ "$HOST_PORT" =~ \. ]] || [[ "$HOST_PORT" =~ : ]]; then
         # Looks like a host, but no prompt given
         echo "Error: prompt is required"
         echo ""
         show_help
         exit 1
     else
-        # Looks like a prompt, use AI_API_URL from .env
+        # Doesn't look like a host, treat as prompt
         PROMPT="$HOST_PORT"
         HOST_PORT=""
     fi
