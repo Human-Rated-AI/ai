@@ -1,0 +1,15 @@
+node_modules
+.git
+.github
+*.md
+.vscode
+.changeset
+contributing
+content
+tools
+assets
+.kodiak.toml
+socket.yaml
+.prettierignore
+.eslintrc.js
+.npmrc

@@ -1,6 +1,7 @@
 .DS_Store
 .cache
 .env
+.env.d
 .envrc
 .next
 .turbo
@@ -16,3 +17,8 @@ tsconfig.vitest-temp.json
 *.log
 *.local
 *.tsbuildinfo
+
+# Local development files (server standalone mode)
+/package.json
+/package-lock.json
+/.npmrc
