@@ -401,6 +401,9 @@ Test API endpoints with various features.
 # Analyze image from URL
 ./test.sh "What is in this image?" --image-url https://example.com/image.jpg
 
+# Analyze image without prompt (uses default: "Describe what you see in this image in detail")
+./test.sh --image-url https://example.com/image.jpg
+
 # Multiple images with high detail
 ./test.sh "Compare these images" \
   -i img1.jpg \

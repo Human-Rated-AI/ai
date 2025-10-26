@@ -6,7 +6,7 @@ show_help() {
     echo ""
     echo "Arguments:"
     echo "  host:port     Server address (optional, uses AI_API_URL from .env if not specified)"
-    echo "  prompt        Text prompt to send to the API"
+    echo "  prompt        Text prompt to send to the API (optional if image provided)"
     echo ""
     echo "Options:"
     echo "  -h, --help              Show this help message"
@@ -44,6 +44,9 @@ show_help() {
     echo ""
     echo "  # Analyze image from URL"
     echo "  $0 'What is in this image?' --image-url https://example.com/image.jpg"
+    echo ""
+    echo "  # Analyze image without prompt (uses default)"
+    echo "  $0 --image-url https://example.com/image.jpg"
     echo ""
     echo "  # Multiple images with high detail"
     echo "  $0 'Compare these images' -i img1.jpg --image-url https://example.com/img2.jpg --image-detail high"
@@ -127,10 +130,15 @@ fi
 
 # Validate prompt is provided
 if [[ -z "$PROMPT" ]]; then
-    echo "Error: prompt is required"
-    echo ""
-    show_help
-    exit 1
+    # If images provided but no prompt, use default
+    if [[ ${#IMAGE_FILES[@]} -gt 0 || ${#IMAGE_URLS[@]} -gt 0 ]]; then
+        PROMPT="Describe what you see in this image in detail"
+    else
+        echo "Error: prompt is required"
+        echo ""
+        show_help
+        exit 1
+    fi
 fi
 
 # Auto-detect API key from .env.d/$USER-key if not provided
