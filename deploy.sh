@@ -203,10 +203,17 @@ deploy_remote() {
     echo "Step 2: Pushing to remote repository..."
     
     # Get current repo, branch, and commit
-    LOCAL_REPO=$(git config --get remote.origin.url)
+    # Try hurated-origin first, fall back to origin
+    if git remote | grep -q "^hurated-origin$"; then
+        REMOTE_NAME="hurated-origin"
+    else
+        REMOTE_NAME="origin"
+    fi
+    
+    LOCAL_REPO=$(git config --get remote.$REMOTE_NAME.url)
     LOCAL_BRANCH=$(git branch --show-current)
     
-    git push origin "$LOCAL_BRANCH"
+    git push "$REMOTE_NAME" "$LOCAL_BRANCH"
     LOCAL_COMMIT=$(git rev-parse HEAD)
     
     echo "Pushed commit: $LOCAL_COMMIT"
