@@ -1,23 +1,28 @@
 #!/usr/bin/env bash
 
 show_help() {
-    echo "Usage: $0 <host:port> <prompt> [options]"
+    echo "Usage: $0 [host:port] <prompt> [options]"
     echo "Test the AI SDK API server"
     echo ""
     echo "Arguments:"
+    echo "  host:port     Server address (optional, uses AI_API_URL from .env if not specified)"
     echo "  prompt        Text prompt to send to the API"
     echo ""
     echo "Options:"
     echo "  -h, --help              Show this help message"
-    echo "  -k, --api-key KEY       API key for authentication (place keys in .env.d/ directory)"
+    echo "  -k, --api-key KEY       API key (optional, uses .env.d/\$USER-key if exists)"
     echo "  -i, --image FILE        Image file to analyze (base64, max ~10MB recommended)"
     echo "  --image-url URL         Image URL to analyze (recommended for large images)"
     echo "  --image-detail LEVEL    Image detail level: low, high, auto (default: auto)"
     echo "  -s, --stream            Use streaming endpoint"
     echo ""
+    echo "Configuration:"
+    echo "  Set AI_API_URL in .env to use as default host"
+    echo "  Create .env.d/\$USER-key file for automatic API key detection"
+    echo ""
     echo "API Keys:"
     echo "  Store keys in .env.d/ directory (one key per file, 32+ characters)."
-    echo "  Example: echo 'test-api-key-for-local-development-min-32-chars' > .env.d/mykey"
+    echo "  Example: echo 'your-api-key-min-32-chars' > .env.d/\$USER-key"
     echo ""
     echo "Image Size:"
     echo "  Local files (-i): Up to 50MB supported (uses temp file for large payloads)"
@@ -25,21 +30,32 @@ show_help() {
     echo "  Recommended: Keep images under 10MB for faster uploads and lower costs"
     echo ""
     echo "Examples:"
-    echo "  # Simple text prompt (local dev)"
-    echo "  $0 localhost:3000 'Hello, world!' -k test-api-key-for-local-development-min-32-chars"
+    echo "  # Use defaults from .env (AI_API_URL and .env.d/\$USER-key)"
+    echo "  $0 'Hello, world!'"
     echo ""
-    echo "  # With API key (Docker)"
-    echo "  $0 localhost:8000 'Hello!' -k test-api-key-for-local-development-min-32-chars"
+    echo "  # Specify host"
+    echo "  $0 localhost:3000 'Hello, world!'"
+    echo ""
+    echo "  # With explicit API key"
+    echo "  $0 'Hello!' -k your-api-key-min-32-chars"
     echo ""
     echo "  # Analyze local image"
-    echo "  $0 localhost:3000 'Describe this image' -i photo.jpg -k test-api-key-for-local-development-min-32-chars"
+    echo "  $0 'Describe this image' -i photo.jpg"
     echo ""
     echo "  # Analyze image from URL"
-    echo "  $0 localhost:3000 'What is in this image?' --image-url https://example.com/image.jpg"
+    echo "  $0 'What is in this image?' --image-url https://example.com/image.jpg"
     echo ""
     echo "  # Multiple images with high detail"
-    echo "  $0 localhost:3000 'Compare these images' -i img1.jpg --image-url https://example.com/img2.jpg --image-detail high"
+    echo "  $0 'Compare these images' -i img1.jpg --image-url https://example.com/img2.jpg --image-detail high"
 }
+
+# Load .env if exists
+if [[ -f .env ]]; then
+    set -a
+    source .env
+    set +a
+fi
+
 # Parse arguments
 HOST_PORT=""
 PROMPT=""
@@ -91,12 +107,48 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Validate required arguments
-if [[ -z "$HOST_PORT" || -z "$PROMPT" ]]; then
-    echo "Error: host:port and prompt are required"
+# Handle optional host:port - if only one positional arg, it's the prompt
+if [[ -n "$HOST_PORT" && -z "$PROMPT" ]]; then
+    # Only one arg given, check if it looks like a host or prompt
+    if [[ "$HOST_PORT" =~ ^[a-zA-Z0-9.-]+(:[0-9]+)?$ ]] || [[ "$HOST_PORT" =~ ^https?:// ]]; then
+        # Looks like a host, but no prompt given
+        echo "Error: prompt is required"
+        echo ""
+        show_help
+        exit 1
+    else
+        # Looks like a prompt, use AI_API_URL from .env
+        PROMPT="$HOST_PORT"
+        HOST_PORT=""
+    fi
+fi
+
+# Use AI_API_URL from .env if no host specified
+if [[ -z "$HOST_PORT" ]]; then
+    if [[ -n "$AI_API_URL" ]]; then
+        HOST_PORT="$AI_API_URL"
+    else
+        echo "Error: No host specified and AI_API_URL not set in .env"
+        echo ""
+        show_help
+        exit 1
+    fi
+fi
+
+# Validate prompt is provided
+if [[ -z "$PROMPT" ]]; then
+    echo "Error: prompt is required"
     echo ""
     show_help
     exit 1
+fi
+
+# Auto-detect API key from .env.d/$USER-key if not provided
+if [[ -z "$API_KEY" ]]; then
+    USER_KEY_FILE=".env.d/${USER}-key"
+    if [[ -f "$USER_KEY_FILE" ]]; then
+        API_KEY=$(cat "$USER_KEY_FILE")
+    fi
 fi
 
 # Check if curl is available

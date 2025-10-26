@@ -373,7 +373,19 @@ Deploy with Docker Compose:
 ```
 
 ### test.sh
-Test API endpoints with various features:
+Test API endpoints with various features.
+
+**Configuration** (optional):
+- Set `AI_API_URL` in `.env` to use as default host
+- Create `.env.d/$USER-key` file for automatic API key detection
+
+**Simplified usage** (uses .env defaults):
+```bash
+# Uses AI_API_URL and .env.d/$USER-key from .env
+./test.sh "Hello, world!"
+./test.sh "Describe this image" -i photo.jpg
+./test.sh "Tell me a story" -s
+```
 
 **Basic text generation**:
 ```bash
@@ -384,13 +396,13 @@ Test API endpoints with various features:
 **Image analysis**:
 ```bash
 # Analyze local image file
-./test.sh localhost:8000 "Describe this image" -i photo.jpg
+./test.sh "Describe this image" -i photo.jpg
 
 # Analyze image from URL
-./test.sh localhost:8000 "What is in this image?" --image-url https://example.com/image.jpg
+./test.sh "What is in this image?" --image-url https://example.com/image.jpg
 
 # Multiple images with high detail
-./test.sh localhost:8000 "Compare these images" \
+./test.sh "Compare these images" \
   -i img1.jpg \
   --image-url https://example.com/img2.jpg \
   --image-detail high
@@ -398,12 +410,13 @@ Test API endpoints with various features:
 
 **Streaming responses**:
 ```bash
-./test.sh localhost:8000 "Tell me a story" -s
-./test.sh localhost:8000 "Describe this" -i photo.jpg -s
+./test.sh "Tell me a story" -s
+./test.sh "Describe this" -i photo.jpg -s
 ```
 
 **Options**:
-- `-k, --api-key KEY` - API key for authentication
+- `host:port` - Server address (optional, uses AI_API_URL from .env if not specified)
+- `-k, --api-key KEY` - API key (optional, uses .env.d/$USER-key if exists)
 - `-i, --image FILE` - Image file to analyze (base64 encoded)
 - `--image-url URL` - Image URL to analyze
 - `--image-detail LEVEL` - Image detail: low, high, auto (default: auto)
