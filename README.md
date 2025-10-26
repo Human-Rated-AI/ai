@@ -116,6 +116,12 @@ Deploy to a remote server via SSH:
    ./test.sh ai-api.hurated.com 'Hello, world!' -k your-api-key
    ```
 
+**Deployment mode detection:**
+- **Local**: Docker running + no `--remote` flags (REMOTE_* in .env is OK)
+- **Local**: `--local` flag given
+- **Remote**: No Docker running + no `--local` flag
+- **Remote**: `--remote` or `--remote-*` flags given
+
 **Remote deployment features:**
 - Checks for uncommitted changes (use `-m` to commit or `-f` to force)
 - Verifies remote repository and branch match

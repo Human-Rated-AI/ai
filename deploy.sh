@@ -15,18 +15,27 @@ show_help() {
     echo "  -h, --help              Show this help message"
     echo "  -f, --force             Force deployment (skip checks, auto-fix issues)"
     echo "  -m, --message MSG       Commit staged/unstaged changes with message"
+    echo "  --local                 Force local deployment"
+    echo "  --remote                Force remote deployment"
     echo "  --remote-host HOST      Remote server hostname (or use REMOTE_HOST in .env)"
     echo "  --remote-user USER      Remote SSH user (or use REMOTE_USER in .env)"
     echo "  --remote-dir DIR        Remote directory (or use REMOTE_DIR in .env)"
     echo ""
+    echo "Deployment mode detection:"
+    echo "  - Local: Docker running + no --remote flags (REMOTE_* in .env is OK)"
+    echo "  - Local: --local flag given"
+    echo "  - Remote: No Docker running + no --local flag"
+    echo "  - Remote: --remote or --remote-* flags given"
+    echo ""
     echo "Local deployment examples:"
     echo "  $0 ai"
-    echo "  $0 all"
+    echo "  $0 --local all"
     echo ""
     echo "Remote deployment examples:"
+    echo "  $0 --remote ai"
     echo "  $0 --remote-host ai-api.hurated.com ai"
-    echo "  $0 -m 'Fix bug' --remote-host ai-api.hurated.com all"
-    echo "  $0 -f ai  # Force local deployment"
+    echo "  $0 -m 'Fix bug' --remote all"
+    echo "  $0 -f --remote ai"
     echo ""
     echo "Note: Remote deployment requires REMOTE_HOST, REMOTE_USER, and REMOTE_DIR"
     echo "      to be set via command line or in .env file"
@@ -39,6 +48,9 @@ REMOTE_HOST=""
 REMOTE_USER=""
 REMOTE_DIR=""
 SERVICE=""
+EXPLICIT_LOCAL=false
+EXPLICIT_REMOTE=false
+REMOTE_FLAG_GIVEN=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -54,16 +66,28 @@ while [[ $# -gt 0 ]]; do
             COMMIT_MSG="$2"
             shift 2
             ;;
+        --local)
+            EXPLICIT_LOCAL=true
+            shift
+            ;;
+        --remote)
+            EXPLICIT_REMOTE=true
+            REMOTE_FLAG_GIVEN=true
+            shift
+            ;;
         --remote-host)
             REMOTE_HOST="$2"
+            REMOTE_FLAG_GIVEN=true
             shift 2
             ;;
         --remote-user)
             REMOTE_USER="$2"
+            REMOTE_FLAG_GIVEN=true
             shift 2
             ;;
         --remote-dir)
             REMOTE_DIR="$2"
+            REMOTE_FLAG_GIVEN=true
             shift 2
             ;;
         ai|langfuse|all)
@@ -100,11 +124,36 @@ REMOTE_DIR="${REMOTE_DIR:-${REMOTE_DIR:-}}"
 
 # Determine if this is a remote deployment
 IS_REMOTE=false
-if [[ -n "$REMOTE_HOST" ]]; then
+
+# Check if Docker is available
+DOCKER_AVAILABLE=false
+if command -v docker &> /dev/null && docker compose version &> /dev/null 2>&1; then
+    DOCKER_AVAILABLE=true
+fi
+
+# Deployment mode logic
+if [[ "$EXPLICIT_LOCAL" == "true" ]]; then
+    # Explicit --local flag
+    IS_REMOTE=false
+    if [[ "$DOCKER_AVAILABLE" == "false" ]]; then
+        echo "Error: --local flag given but Docker is not available"
+        exit 1
+    fi
+elif [[ "$EXPLICIT_REMOTE" == "true" || "$REMOTE_FLAG_GIVEN" == "true" ]]; then
+    # Explicit --remote or --remote-* flags
     IS_REMOTE=true
-    
-    if [[ -z "$REMOTE_USER" || -z "$REMOTE_DIR" ]]; then
+elif [[ "$DOCKER_AVAILABLE" == "false" ]]; then
+    # No Docker available, deploy remotely
+    IS_REMOTE=true
+else
+    # Docker available and no remote flags, deploy locally
+    IS_REMOTE=false
+fi
+
+if [[ "$IS_REMOTE" == "true" ]]; then
+    if [[ -z "$REMOTE_HOST" || -z "$REMOTE_USER" || -z "$REMOTE_DIR" ]]; then
         echo "Error: Remote deployment requires REMOTE_HOST, REMOTE_USER, and REMOTE_DIR"
+        echo "Set them via command line flags or in .env file"
         exit 1
     fi
     
@@ -112,6 +161,10 @@ if [[ -n "$REMOTE_HOST" ]]; then
     echo "Host: $REMOTE_HOST"
     echo "User: $REMOTE_USER"
     echo "Dir: $REMOTE_DIR"
+    echo "Service: $SERVICE"
+    echo ""
+else
+    echo "=== Local Deployment ==="
     echo "Service: $SERVICE"
     echo ""
 fi
