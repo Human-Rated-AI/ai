@@ -117,6 +117,18 @@ if [[ ${#IMAGE_FILES[@]} -gt 0 || ${#IMAGE_URLS[@]} -gt 0 ]]; then
     USE_VISION=true
 fi
 
+# Determine protocol (http or https)
+PROTOCOL="http"
+if [[ ! "$HOST_PORT" =~ ^https?:// ]]; then
+    # No protocol specified, check if we should use https
+    HOST_ONLY="${HOST_PORT%%:*}"
+    if [[ "$HOST_ONLY" != "localhost" && "$HOST_ONLY" != "127.0.0.1" && ! "$HOST_PORT" =~ : ]]; then
+        # Production domain without port -> use https
+        PROTOCOL="https"
+    fi
+    HOST_PORT="${PROTOCOL}://${HOST_PORT}"
+fi
+
 # Build endpoint URL
 if [[ "$USE_VISION" == "true" ]]; then
     if [[ "$USE_STREAM" == "true" ]]; then
@@ -133,7 +145,7 @@ else
 fi
 
 echo "=== AI SDK API Test ==="
-echo "Endpoint: http://$HOST_PORT$ENDPOINT"
+echo "Endpoint: $HOST_PORT$ENDPOINT"
 echo "Prompt: $PROMPT"
 if [[ -n "$API_KEY" ]]; then
     echo "API Key: ${API_KEY:0:8}..."
@@ -201,7 +213,7 @@ TEMP_FILE=$(mktemp)
 echo "$JSON_PAYLOAD" > "$TEMP_FILE"
 
 # Build curl command
-CURL_CMD=(curl -L -X POST "http://$HOST_PORT$ENDPOINT")
+CURL_CMD=(curl -L -X POST "$HOST_PORT$ENDPOINT")
 CURL_CMD+=(-H "Content-Type: application/json")
 if [[ -n "$API_KEY" ]]; then
     CURL_CMD+=(-H "x-api-key: $API_KEY")
