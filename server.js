@@ -93,7 +93,11 @@ app.post('/api/generate', async (req, res) => {
     const apiKey = req.headers['x-api-key'];
     const ip = req.ip || req.connection.remoteAddress;
     
-    const { text } = await generateText({ model, prompt });
+    const { text } = await generateText({ 
+      model, 
+      prompt,
+      temperature: 1
+    });
     logRequest(ip, 'TXT', prompt, text);
     
     // Track usage in Langfuse
@@ -117,7 +121,11 @@ app.post('/api/stream', async (req, res) => {
     const apiKey = req.headers['x-api-key'];
     const ip = req.ip || req.connection.remoteAddress;
     
-    const result = await streamText({ model, prompt });
+    const result = await streamText({ 
+      model, 
+      prompt,
+      temperature: 1
+    });
     
     res.setHeader('Content-Type', 'text/plain');
     res.setHeader('Transfer-Encoding', 'chunked');
@@ -199,7 +207,8 @@ app.post('/api/generate-with-vision', async (req, res) => {
           role: 'user',
           content
         }
-      ]
+      ],
+      temperature: 1
     });
     
     const extra = `[${images.length}img:${imageUrls[0]}]`;
@@ -273,7 +282,8 @@ app.post('/api/stream-with-vision', async (req, res) => {
           role: 'user',
           content
         }
-      ]
+      ],
+      temperature: 1
     });
     
     res.setHeader('Content-Type', 'text/plain');
