@@ -70,6 +70,8 @@ nvm use node
 
 ### Production Deployment
 
+#### Local Deployment
+
 1. **Deploy with Docker**:
    ```bash
    ./deploy.sh all
@@ -82,6 +84,44 @@ nvm use node
    # Docker uses port 8000 (EXTERNAL_PORT in .env)
    ./test.sh localhost:8000 'Hello, world!' -k your-secret-api-key-min-32-chars-long
    ```
+
+#### Remote Deployment
+
+Deploy to a remote server via SSH:
+
+1. **Configure remote settings in `.env`**:
+   ```bash
+   REMOTE_HOST=ai-api.hurated.com
+   REMOTE_USER=your_ssh_username
+   REMOTE_DIR=ai
+   ```
+
+2. **Deploy to remote server**:
+   ```bash
+   # Deploy AI API only
+   ./deploy.sh --remote-host ai-api.hurated.com ai
+   
+   # Or use .env configuration
+   ./deploy.sh ai  # Uses REMOTE_HOST from .env if set
+   
+   # Commit changes and deploy
+   ./deploy.sh -m "Update feature" ai
+   
+   # Force deployment (auto-fix issues)
+   ./deploy.sh -f ai
+   ```
+
+3. **Test remote server**:
+   ```bash
+   ./test.sh ai-api.hurated.com 'Hello, world!' -k your-api-key
+   ```
+
+**Remote deployment features:**
+- Checks for uncommitted changes (use `-m` to commit or `-f` to force)
+- Verifies remote repository and branch match
+- Syncs `.env` file if different (with `-f` flag)
+- Pulls latest changes before deploying
+- Validates commit hash matches after pull
 
 ## Configuration
 
